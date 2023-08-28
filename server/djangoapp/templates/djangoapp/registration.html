@@ -1,11 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    {% load static %}
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Dealership Review</title>
+        {% load static %}
+        <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">-->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <link href="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.css" rel="stylesheet">
+        <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
+        <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+        <style>
+            #logout-link{
+              color: #dc3545;
+              text-decoration: none;
+            }
+      
+            #logout-link:hover{
+              color: white;
+            }
+          </style>
+          <script>
+            function closeModal(){
+              document.getElementById("error-modal").style.display = "none";
+            }
+          </script>
+    </head>
     <body>
-    <!--Add a registration form here -->
+        <form action="/djangoapp/register" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="username" class="form-control" id="username" name="username" aria-describedby="usernameHelp" placeholder="Enter username">
+                <small id="usernameHelp" class="form-text text-muted">We'll never share your username with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="firstName">First Name: </label>
+                <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter firt name">
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter last name">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" class="form-control" id="password" placeholder="Enter Password">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirm" placeholder="Confirm Password">
+            </div>
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        {% if Error %}
+        <div class="modal" tabindex="-1" id="error-modal" role="dialog" style="display: block; background-color: rgba(1,1,1,0.5);">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+              </div>
+              <div class="modal-body">
+                <p>{{Error}}</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal()">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
     </body>
 </html>
