@@ -9,7 +9,8 @@ from django.contrib import messages
 from datetime import datetime
 import logging
 import json
-from .restapis import get_dealers_from_cf
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, get_dealer_by_id_from_cf
+from .models import CarModel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -25,6 +26,9 @@ def about(request):
     context = {}
     if request.method == "GET":
         return render(request, 'djangoapp/about.html', context)
+    else:
+        context = {"Error": "Unsupported method"}
+        return render(request,'djangoapp/index.html',context)
 
 # Create a `contact` view to return a static contact page
 #def contact(request):
@@ -32,7 +36,9 @@ def contact(request):
     context = {}
     if request.method == "GET":
         return render(request, 'djangoapp/contact_us.html', context)
-
+    else:
+        context = {"Error": "Unsupported method"}
+        return render(request,'djangoapp/index.html',context)
 
 # Create a `login_request` view to handle sign in request
 # def login_request(request):
@@ -149,6 +155,9 @@ def get_dealerships(request):
         data = get_dealers_from_cf(url)
         context = {"dealerships": data}
         return render(request, 'djangoapp/index.html', context)
+    else:
+        context = {"Error": "Unsupported method"}
+        return render(request,'djangoapp/index.html',context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
@@ -157,11 +166,65 @@ def get_dealerships(request):
 def get_dealer_details(request,dealer_id):
     context = {}
     if request.method == "GET":
+        url = "http://localhost:5000/api/get_reviews"
+        reviews = get_dealer_reviews_from_cf(url, dealer_id)
+        context = {
+            "dealer_id": dealer_id,
+            "reviews": reviews
+        }        
         return render(request,'djangoapp/dealer_details.html',context)
 
 # Create a `add_review` view to submit a review
 # def add_review(request, dealer_id):
 # ...
 def add_review(request,dealer_id):
-    pass
+    context = {}
+    if request.method == "GET":
+        # dealer_id, dealer_full_name, car (car_make.name, name, year)
+        url = "http://localhost:3000/dealerships/get"
+        dealer = get_dealer_by_id_from_cf(url,dealer_id)
+        if dealer is None:
+            context = {"Error": "Invalid dealer id"}
+            return render(request,'djangoapp/index.html',context)
 
+        cars = CarModel.objects.all().filter(dealer_id=dealer_id)
+        if len(cars) == 0:
+            context = {"Error": "No cars added"}
+            return render(request,'djangoapp/index.html',context)
+
+        context = {
+            "dealer_id": dealer_id,
+            "dealer_full_name": dealer.full_name,
+            "cars": cars
+        }
+        return render(request,'djangoapp/add_review.html',context)
+    elif request.method == "POST":
+        data = request.POST
+        print(data)
+        review = {}
+        review["id"] = 1
+        review["name"] = f"{request.user.first_name}  {request.user.last_name}"
+        review["dealership"] = dealer_id
+        review["review"] = data["review"]
+        review["purchase"] = True if "purchaseCheck" in data else False
+        if review["purchase"]:
+            review["purchase_date"] = str(datetime.strptime(data.get("purchaseDate"),"%Y-%m-%d"))
+        else:
+            review["purchase_date"] = ""
+
+        car = CarModel.objects.get(pk=data["car"])
+
+        review["car_make"] = car.car_make.name
+        review["car_model"] = car.name
+        review["car_year"] = str(car.year)
+
+        url = "http://localhost:5000/api/post_review"
+
+        res = post_request(url, json.dumps(review))
+
+        if res.status_code == 200:
+            print("posted")
+        else:
+            print("error")
+
+        return redirect("djangoapp:dealer_details",dealer_id=dealer_id)

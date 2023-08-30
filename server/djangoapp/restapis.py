@@ -118,7 +118,8 @@ def get_dealer_by_id_from_cf(url,dealerId):
            city=data["city"],
            full_name=data["full_name"],
            id=data["id"],
-           lat=data["at"],
+           lat=data["lat"],
+           short_name=data["short_name"],
            long=data["long"],
            st=data["st"],
            zip=data["zip"]
@@ -135,17 +136,17 @@ def get_dealer_reviews_from_cf(url,dealer_id):
         return []
     else:
         for d in data:
-            review_content = data["review"]
-            id = data["_id"]
-            name = data["name"]
-            purchase = data["purchase"]
-            dealership = data["dealership"]
+            review_content = d["review"]
+            id = d["_id"]
+            name = d["name"]
+            purchase = d["purchase"]
+            dealership = d["dealership"]
 
             try:
-                car_make = data["car_make"]
-                car_model = data["car_model"]
-                car_year = data["car_year"]
-                purchase_date = data["purchase_date"]
+                car_make = d["car_make"]
+                car_model = d["car_model"]
+                car_year = d["car_year"]
+                purchase_date = d["purchase_date"]
 
                 obj = DealerReview(
                     dealership=dealership,
@@ -179,5 +180,25 @@ def get_dealer_reviews_from_cf(url,dealer_id):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
 def analyze_review_sentiments(review):
-    pass
+    api_key = "pIFCwwCrkgwh408R3dRoZQ1XdoWF-5Ut0n-axxqhLGhD"
+    url = "https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/d3aeb3c3-0e52-4c81-9f7b-600e8fc39ebb"
+    url_endpoint = url + "/v1/analyze?version=2019-07-12"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    data = {
+        "text": review,
+        "features": {
+            "sentiment":{
+                "document": True
+            }
+        }
+    }
+    res = requests.post(url_endpoint,headers=headers,json=data,auth=('apikey',api_key))
+    print(res.status_code)
+    if res.status_code != 200:
+        return "neutral"
+    else:
+        res = res.json()
+        return res["sentiment"]["document"]["label"]
 

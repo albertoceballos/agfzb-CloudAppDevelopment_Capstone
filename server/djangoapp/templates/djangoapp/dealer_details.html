@@ -6,7 +6,7 @@
     {% load static %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        #logout-link, #register-link{
+        #logout-link, #register-link, #add-review-btn{
           color: #dc3545;
           text-decoration: none;
         }
@@ -15,8 +15,12 @@
           color: #28a745;
         }
   
-        #logout-link:hover, #register-link:hover{
+        #logout-link:hover, #register-link:hover, #add-review-btn:hover{
           color: white;
+        }
+
+        #add-review-btn{
+          color: #28a745;
         }
       </style>
       <script>
@@ -79,13 +83,38 @@
         </div>
       {% endif %}
     <!-- Add reviews as cards -->
-    <div class="card bg-light mb-3" style="max-width: 18rem;">
-        <div class="card-header">Header</div>
-        <div class="card-body">
-          <h5 class="card-title">Light card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    {% if reviews %}
+    <div class="card-columns">
+      {% for r in reviews %}
+      <div class="col-md">
+        <div class="card bg-light m-3 text-left col">
+          <div class="card-header">
+            <img src="{{MEDIA_URL}}/emoji/{{r.sentiment}}.png" class="card-img-left" style="height:40px;display:inline-block;">
+          </div>
+          <div class="card-body">
+            {% if r.car_make %}
+              <h5 class="card-title">{{r.car_make}}, {{r.car_model}}</h5>
+              <h5>{{r.car_year}}</h5>
+            {% else %}
+              <h5 class="card-title">Review</h5>
+              <h5></h5>
+            {% endif %}
+            <p class="card-text">{{r.review}}</p>
+          </div>
         </div>
       </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <h1>No reviews for this dealership</h1>
+    {% endif %}
+    {% if user.is_authenticated %}
+      <div style="margin-left:1%;">
+        <button type="button" class="btn btn-outline-success">
+          <a href="/djangoapp/dealer/{{dealer_id}}/add_review/" id="add-review-btn">Add a review</a>
+        </button>
+      </div>
+    {% endif %}
     </body>
 
 </html>
